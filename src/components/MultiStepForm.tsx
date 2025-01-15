@@ -86,6 +86,10 @@ export const MultiStepForm = () => {
     toast.success("Form submitted successfully!");
   };
 
+  const handlePrevious = () => {
+    setStep((prevStep) => Math.max(1, prevStep - 1));
+  };
+
   if (isSearching) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
@@ -146,9 +150,17 @@ export const MultiStepForm = () => {
         {step === 1 ? (
           <StepOne onSubmit={handleStepOneSubmit} initialData={formData} />
         ) : step === 2 ? (
-          <StepTwo onSubmit={handleStepTwoSubmit} initialData={formData} />
+          <StepTwo
+            onSubmit={handleStepTwoSubmit}
+            onPrevious={handlePrevious}
+            initialData={formData}
+          />
         ) : (
-          <StepThree onSubmit={handleStepThreeSubmit} initialData={formData} />
+          <StepThree
+            onSubmit={handleStepThreeSubmit}
+            onPrevious={handlePrevious}
+            initialData={formData}
+          />
         )}
       </div>
     </div>

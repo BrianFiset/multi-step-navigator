@@ -6,10 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface StepThreeProps {
   onSubmit: (data: Partial<FormData>) => void;
+  onPrevious: () => void;
   initialData: FormData;
 }
 
-export const StepThree = ({ onSubmit, initialData }: StepThreeProps) => {
+export const StepThree = ({ onSubmit, onPrevious, initialData }: StepThreeProps) => {
   const {
     handleSubmit,
     formState: { errors },
@@ -48,7 +49,7 @@ export const StepThree = ({ onSubmit, initialData }: StepThreeProps) => {
         <Button
           type="button"
           variant="outline"
-          onClick={() => window.history.back()}
+          onClick={onPrevious}
           className="flex-1"
         >
           Previous

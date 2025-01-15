@@ -15,10 +15,11 @@ import { toast } from "sonner";
 
 interface StepTwoProps {
   onSubmit: (data: Partial<FormData>) => void;
+  onPrevious: () => void;
   initialData: FormData;
 }
 
-export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
+export const StepTwo = ({ onSubmit, onPrevious, initialData }: StepTwoProps) => {
   const {
     register,
     handleSubmit,
@@ -192,7 +193,7 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
         <Button
           type="button"
           variant="outline"
-          onClick={() => window.history.back()}
+          onClick={onPrevious}
           className="flex-1"
         >
           Previous
