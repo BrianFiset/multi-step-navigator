@@ -3,6 +3,7 @@ import { StepOne } from "./StepOne";
 import { StepTwo } from "./StepTwo";
 import { StepThree } from "./StepThree";
 import { toast } from "sonner";
+import { submitLeadData } from "@/services/leadPortalService";
 
 export interface FormData {
   firstName: string;
@@ -43,13 +44,34 @@ export const MultiStepForm = () => {
 
   useEffect(() => {
     if (isSearching) {
-      const timer = setTimeout(() => {
-        setIsSearching(false);
-        setStep(3);
-      }, 3000);
-      return () => clearTimeout(timer);
+      const submitData = async () => {
+        try {
+          const success = await submitLeadData(formData);
+          if (!success) {
+            toast.error("Failed to submit lead data");
+            setStep(2);
+            setIsSearching(false);
+            return;
+          }
+          
+          // If successful, continue to step 3 after the loading animation
+          const timer = setTimeout(() => {
+            setIsSearching(false);
+            setStep(3);
+          }, 3000);
+          
+          return () => clearTimeout(timer);
+        } catch (error) {
+          console.error('Error submitting lead:', error);
+          toast.error("Failed to submit lead data");
+          setStep(2);
+          setIsSearching(false);
+        }
+      };
+
+      submitData();
     }
-  }, [isSearching]);
+  }, [isSearching, formData]);
 
   const handleStepOneSubmit = (stepOneData: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...stepOneData }));
@@ -57,7 +79,6 @@ export const MultiStepForm = () => {
   };
 
   const handleStepTwoSubmit = (stepTwoData: Partial<FormData>) => {
-    // Validate required fields
     const requiredFields = [
       "injuryType",
       "accidentDate",
