@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StepOne } from "./StepOne";
 import { StepTwo } from "./StepTwo";
+import { StepThree } from "./StepThree";
 import { toast } from "sonner";
 
 export interface FormData {
@@ -16,6 +17,7 @@ export interface FormData {
   otherPartyInsured: string;
   soughtMedicalAttention: string;
   accidentDescription: string;
+  tcpaConsent: string;
 }
 
 const initialFormData: FormData = {
@@ -31,22 +33,54 @@ const initialFormData: FormData = {
   otherPartyInsured: "",
   soughtMedicalAttention: "",
   accidentDescription: "",
+  tcpaConsent: "",
 };
 
 export const MultiStepForm = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (isSearching) {
+      const timer = setTimeout(() => {
+        setIsSearching(false);
+        setStep(3);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSearching]);
 
   const handleStepOneSubmit = (stepOneData: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...stepOneData }));
     setStep(2);
   };
 
-  const handleStepTwoSubmit = async (stepTwoData: Partial<FormData>) => {
-    const finalFormData = { ...formData, ...stepTwoData };
+  const handleStepTwoSubmit = (stepTwoData: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...stepTwoData }));
+    setIsSearching(true);
+  };
+
+  const handleStepThreeSubmit = async (stepThreeData: Partial<FormData>) => {
+    const finalFormData = { ...formData, ...stepThreeData };
     console.log("Form submitted:", finalFormData);
     toast.success("Form submitted successfully!");
   };
+
+  if (isSearching) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+            <p className="text-lg font-medium text-gray-700">
+              Searching for Available Partners...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
@@ -54,7 +88,7 @@ export const MultiStepForm = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-blue-600 font-medium">
-              Step {step}/2
+              Step {step}/3
             </span>
             <div className="flex gap-2">
               <div
@@ -67,24 +101,35 @@ export const MultiStepForm = () => {
                   step >= 2 ? "bg-blue-600" : "bg-gray-200"
                 }`}
               />
+              <div
+                className={`h-2 w-16 rounded ${
+                  step >= 3 ? "bg-blue-600" : "bg-gray-200"
+                }`}
+              />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {step === 1
               ? "Share Your Information to Get Started"
-              : "Tell Us About Your Case"}
+              : step === 2
+              ? "Tell Us About Your Case"
+              : "Final Step"}
           </h1>
           <p className="text-gray-600 mt-1">
             {step === 1
               ? "Fill out this quick form to receive immediate legal assistance."
-              : "Help us understand your situation better."}
+              : step === 2
+              ? "Help us understand your situation better."
+              : "Please review and confirm your consent."}
           </p>
         </div>
 
         {step === 1 ? (
           <StepOne onSubmit={handleStepOneSubmit} initialData={formData} />
-        ) : (
+        ) : step === 2 ? (
           <StepTwo onSubmit={handleStepTwoSubmit} initialData={formData} />
+        ) : (
+          <StepThree onSubmit={handleStepThreeSubmit} initialData={formData} />
         )}
       </div>
     </div>
