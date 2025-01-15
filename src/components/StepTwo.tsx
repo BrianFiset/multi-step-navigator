@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface StepTwoProps {
   onSubmit: (data: Partial<FormData>) => void;
@@ -24,21 +25,36 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
     formState: { errors },
     setValue,
     watch,
+    trigger,
   } = useForm<Partial<FormData>>({
     defaultValues: initialData,
   });
 
-  const onSelectChange = (field: keyof FormData, value: string) => {
+  const onSelectChange = async (field: keyof FormData, value: string) => {
     setValue(field, value);
+    await trigger(field);
+  };
+
+  const onSubmitWithValidation = async (data: Partial<FormData>) => {
+    const isValid = await trigger();
+    if (!isValid) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    onSubmit(data);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmitWithValidation)} className="space-y-6">
       <div className="space-y-2">
-        <Label>What injuries did you sustain?</Label>
+        <Label className="flex items-center">
+          What injuries did you sustain?
+          <span className="text-red-500 ml-1">*</span>
+        </Label>
         <Select
           onValueChange={(value) => onSelectChange("injuryType", value)}
           defaultValue={watch("injuryType")}
+          required
         >
           <SelectTrigger>
             <SelectValue placeholder="Select your injury type" />
@@ -54,10 +70,14 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label>When did the accident occur, approximately?</Label>
+        <Label className="flex items-center">
+          When did the accident occur, approximately?
+          <span className="text-red-500 ml-1">*</span>
+        </Label>
         <Select
           onValueChange={(value) => onSelectChange("accidentDate", value)}
           defaultValue={watch("accidentDate")}
+          required
         >
           <SelectTrigger>
             <SelectValue placeholder="Please select an approximate date" />
@@ -73,10 +93,14 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
       </div>
 
       <div className="space-y-4">
-        <Label>Were you at fault in the accident?</Label>
+        <Label className="flex items-center">
+          Were you at fault in the accident?
+          <span className="text-red-500 ml-1">*</span>
+        </Label>
         <RadioGroup
           onValueChange={(value) => onSelectChange("atFault", value)}
           defaultValue={watch("atFault")}
+          required
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="yes" id="fault-yes" />
@@ -90,13 +114,15 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
       </div>
 
       <div className="space-y-4">
-        <Label>
+        <Label className="flex items-center">
           Are you currently working with or have you previously retained another
           attorney for this matter?
+          <span className="text-red-500 ml-1">*</span>
         </Label>
         <RadioGroup
           onValueChange={(value) => onSelectChange("hasAttorney", value)}
           defaultValue={watch("hasAttorney")}
+          required
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="yes" id="attorney-yes" />
@@ -110,10 +136,14 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
       </div>
 
       <div className="space-y-4">
-        <Label>Are you aware if the other party is insured?</Label>
+        <Label className="flex items-center">
+          Are you aware if the other party is insured?
+          <span className="text-red-500 ml-1">*</span>
+        </Label>
         <RadioGroup
           onValueChange={(value) => onSelectChange("otherPartyInsured", value)}
           defaultValue={watch("otherPartyInsured")}
+          required
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="yes" id="insured-yes" />
@@ -127,12 +157,16 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
       </div>
 
       <div className="space-y-4">
-        <Label>Have you sought medical attention?</Label>
+        <Label className="flex items-center">
+          Have you sought medical attention?
+          <span className="text-red-500 ml-1">*</span>
+        </Label>
         <RadioGroup
           onValueChange={(value) =>
             onSelectChange("soughtMedicalAttention", value)
           }
           defaultValue={watch("soughtMedicalAttention")}
+          required
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="yes" id="medical-yes" />
@@ -149,7 +183,7 @@ export const StepTwo = ({ onSubmit, initialData }: StepTwoProps) => {
         <Label>Could you please describe what happened during the accident?</Label>
         <Textarea
           {...register("accidentDescription")}
-          placeholder="Please provide details about the accident"
+          placeholder="Please provide details about the accident (optional)"
           className="min-h-[100px]"
         />
       </div>
