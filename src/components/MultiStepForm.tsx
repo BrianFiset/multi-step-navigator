@@ -57,6 +57,25 @@ export const MultiStepForm = () => {
   };
 
   const handleStepTwoSubmit = (stepTwoData: Partial<FormData>) => {
+    // Validate required fields
+    const requiredFields = [
+      "injuryType",
+      "accidentDate",
+      "atFault",
+      "hasAttorney",
+      "otherPartyInsured",
+      "soughtMedicalAttention",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !stepTwoData[field as keyof typeof stepTwoData]
+    );
+
+    if (missingFields.length > 0) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, ...stepTwoData }));
     setIsSearching(true);
   };
