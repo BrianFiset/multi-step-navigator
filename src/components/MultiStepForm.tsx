@@ -10,6 +10,7 @@ export interface FormData {
   lastName: string;
   email: string;
   phone: string;
+  state: string;
   zipcode: string;
   injuryType: string;
   accidentDate: string;
@@ -26,6 +27,7 @@ const initialFormData: FormData = {
   lastName: "",
   email: "",
   phone: "",
+  state: "",
   zipcode: "",
   injuryType: "",
   accidentDate: "",
