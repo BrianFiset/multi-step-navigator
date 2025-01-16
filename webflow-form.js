@@ -1,5 +1,3 @@
-// Add this JavaScript to your Webflow page settings
-
 // Form data storage
 let formData = {
   firstName: '',
@@ -16,6 +14,18 @@ let formData = {
   accidentDescription: '',
   tcpaConsent: false
 };
+
+// Add rotation animation for spinner
+function updateSpinner() {
+  const spinner = document.querySelector('#loadingState > div');
+  if (spinner) {
+    let rotation = 0;
+    setInterval(() => {
+      rotation += 6; // Rotate 6 degrees every frame (60 frames per second)
+      spinner.style.transform = `rotate(${rotation}deg)`;
+    }, 16.67); // Approximately 60fps
+  }
+}
 
 // Validate email format
 function isValidEmail(email) {
@@ -42,7 +52,9 @@ function updateProgressDots(step) {
   document.getElementById('currentStep').textContent = step;
   for (let i = 1; i <= 3; i++) {
     const dot = document.getElementById(`dot${i}`);
-    dot.classList.toggle('active', i <= step);
+    if (dot) {
+      dot.style.backgroundColor = i <= step ? '#2563eb' : '#e5e7eb';
+    }
   }
 }
 
@@ -200,15 +212,39 @@ async function nextStep(currentStep) {
   }
 
   // Hide current step and show next step
-  document.getElementById(`step${currentStep}`).style.display = 'none';
-  document.getElementById(`step${currentStep + 1}`).style.display = 'block';
+  const currentStepElement = document.getElementById(`step${currentStep}`);
+  const nextStepElement = document.getElementById(`step${currentStep + 1}`);
+  
+  if (currentStepElement && nextStepElement) {
+    currentStepElement.style.opacity = '0';
+    setTimeout(() => {
+      currentStepElement.style.display = 'none';
+      nextStepElement.style.display = 'block';
+      setTimeout(() => {
+        nextStepElement.style.opacity = '1';
+      }, 50);
+    }, 300);
+  }
+  
   updateProgressDots(currentStep + 1);
 }
 
 // Navigate to previous step
 function previousStep(currentStep) {
-  document.getElementById(`step${currentStep}`).style.display = 'none';
-  document.getElementById(`step${currentStep - 1}`).style.display = 'block';
+  const currentStepElement = document.getElementById(`step${currentStep}`);
+  const prevStepElement = document.getElementById(`step${currentStep - 1}`);
+  
+  if (currentStepElement && prevStepElement) {
+    currentStepElement.style.opacity = '0';
+    setTimeout(() => {
+      currentStepElement.style.display = 'none';
+      prevStepElement.style.display = 'block';
+      setTimeout(() => {
+        prevStepElement.style.opacity = '1';
+      }, 50);
+    }, 300);
+  }
+  
   updateProgressDots(currentStep - 1);
 }
 
@@ -228,7 +264,8 @@ function submitForm() {
   alert('Form submitted successfully!');
 }
 
-// Initialize progress dots when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
+  updateSpinner();
 });
