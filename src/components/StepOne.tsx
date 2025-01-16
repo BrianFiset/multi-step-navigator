@@ -3,7 +3,13 @@ import { FormData } from "./MultiStepForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface StepOneProps {
   onSubmit: (data: Partial<FormData>) => void;
@@ -11,39 +17,17 @@ interface StepOneProps {
 }
 
 export const StepOne = ({ onSubmit, initialData }: StepOneProps) => {
-  const [state, setState] = useState("");
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
+    setValue,
   } = useForm<Partial<FormData>>({
     defaultValues: initialData,
   });
 
-  const zipcode = watch("zipcode");
-
-  // Function to get state from zipcode
-  const getStateFromZipcode = async (zipcode: string) => {
-    if (/^\d{5}(-\d{4})?$/.test(zipcode)) {
-      try {
-        const response = await fetch(`https://api.zippopotam.us/us/${zipcode}`);
-        const data = await response.json();
-        const stateAbbr = data.places[0]["state abbreviation"];
-        setState(stateAbbr);
-      } catch (error) {
-        console.error("Error fetching state from zipcode:", error);
-        setState("");
-      }
-    }
-  };
-
-  // Watch for zipcode changes
-  const handleZipcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newZipcode = e.target.value;
-    if (newZipcode.length === 5) {
-      getStateFromZipcode(newZipcode);
-    }
+  const handleStateChange = (value: string) => {
+    setValue('state', value);
   };
 
   return (
@@ -126,12 +110,63 @@ export const StepOne = ({ onSubmit, initialData }: StepOneProps) => {
           <Label htmlFor="state">
             State <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="state"
-            value={state}
-            readOnly
-            className="bg-gray-100"
-          />
+          <Select onValueChange={handleStateChange} defaultValue={initialData.state}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select State" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="AL">AL</SelectItem>
+              <SelectItem value="AK">AK</SelectItem>
+              <SelectItem value="AZ">AZ</SelectItem>
+              <SelectItem value="AR">AR</SelectItem>
+              <SelectItem value="CA">CA</SelectItem>
+              <SelectItem value="CO">CO</SelectItem>
+              <SelectItem value="CT">CT</SelectItem>
+              <SelectItem value="DE">DE</SelectItem>
+              <SelectItem value="FL">FL</SelectItem>
+              <SelectItem value="GA">GA</SelectItem>
+              <SelectItem value="HI">HI</SelectItem>
+              <SelectItem value="ID">ID</SelectItem>
+              <SelectItem value="IL">IL</SelectItem>
+              <SelectItem value="IN">IN</SelectItem>
+              <SelectItem value="IA">IA</SelectItem>
+              <SelectItem value="KS">KS</SelectItem>
+              <SelectItem value="KY">KY</SelectItem>
+              <SelectItem value="LA">LA</SelectItem>
+              <SelectItem value="ME">ME</SelectItem>
+              <SelectItem value="MD">MD</SelectItem>
+              <SelectItem value="MA">MA</SelectItem>
+              <SelectItem value="MI">MI</SelectItem>
+              <SelectItem value="MN">MN</SelectItem>
+              <SelectItem value="MS">MS</SelectItem>
+              <SelectItem value="MO">MO</SelectItem>
+              <SelectItem value="MT">MT</SelectItem>
+              <SelectItem value="NE">NE</SelectItem>
+              <SelectItem value="NV">NV</SelectItem>
+              <SelectItem value="NH">NH</SelectItem>
+              <SelectItem value="NJ">NJ</SelectItem>
+              <SelectItem value="NM">NM</SelectItem>
+              <SelectItem value="NY">NY</SelectItem>
+              <SelectItem value="NC">NC</SelectItem>
+              <SelectItem value="ND">ND</SelectItem>
+              <SelectItem value="OH">OH</SelectItem>
+              <SelectItem value="OK">OK</SelectItem>
+              <SelectItem value="OR">OR</SelectItem>
+              <SelectItem value="PA">PA</SelectItem>
+              <SelectItem value="RI">RI</SelectItem>
+              <SelectItem value="SC">SC</SelectItem>
+              <SelectItem value="SD">SD</SelectItem>
+              <SelectItem value="TN">TN</SelectItem>
+              <SelectItem value="TX">TX</SelectItem>
+              <SelectItem value="UT">UT</SelectItem>
+              <SelectItem value="VT">VT</SelectItem>
+              <SelectItem value="VA">VA</SelectItem>
+              <SelectItem value="WA">WA</SelectItem>
+              <SelectItem value="WV">WV</SelectItem>
+              <SelectItem value="WI">WI</SelectItem>
+              <SelectItem value="WY">WY</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -147,10 +182,6 @@ export const StepOne = ({ onSubmit, initialData }: StepOneProps) => {
                 message: "Invalid zipcode",
               },
             })}
-            onChange={(e) => {
-              register("zipcode").onChange(e);
-              handleZipcodeChange(e);
-            }}
             className={errors.zipcode ? "border-red-500" : ""}
           />
           {errors.zipcode && (
