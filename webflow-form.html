@@ -17,7 +17,7 @@
     </div>
 
     <!-- Step 1 -->
-    <div id="step1" style="animation: fadeIn 0.3s ease;">
+    <div id="step1" style="opacity: 1; transition: opacity 0.3s ease;">
       <h2>Share Your Information to Get Started</h2>
       <p>Fill out this quick form to receive immediate legal assistance.</p>
       
@@ -52,7 +52,7 @@
     </div>
 
     <!-- Step 2 -->
-    <div id="step2" style="display: none; animation: fadeIn 0.3s ease;">
+    <div id="step2" style="display: none; opacity: 0; transition: opacity 0.3s ease;">
       <h2>Tell Us About Your Case</h2>
       <p>Help us understand your situation better.</p>
       
@@ -124,7 +124,7 @@
     </div>
 
     <!-- Step 3 -->
-    <div id="step3" style="display: none; animation: fadeIn 0.3s ease;">
+    <div id="step3" style="display: none; opacity: 0; transition: opacity 0.3s ease;">
       <h2>Final Step</h2>
       <p>Please review and confirm your consent.</p>
       
@@ -143,31 +143,10 @@
 
     <!-- Loading State -->
     <div id="loadingState" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem;">
-      <div style="width: 3rem; height: 3rem; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <div style="width: 3rem; height: 3rem; border: 3px solid #e5e7eb; border-top-color: #2563eb; border-radius: 50%; animation: 1s linear infinite spin;"></div>
       <p>Searching for Available Partners...</p>
     </div>
   </div>
-
-  <style>
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-    @media (min-width: 640px) {
-      .form-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-  </style>
 
   <script src="webflow-form.js"></script>
 </body>
