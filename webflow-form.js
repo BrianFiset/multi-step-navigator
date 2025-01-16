@@ -4,6 +4,7 @@ let formData = {
   lastName: '',
   email: '',
   phone: '',
+  state: '',
   zipcode: '',
   injuryType: '',
   accidentDate: '',
@@ -40,13 +41,23 @@ async function getStateFromZipcode(zipcode) {
   try {
     const response = await fetch(`https://api.zippopotam.us/us/${zipcode}`);
     const data = await response.json();
-    // Get state abbreviation from the API response
-    return data.places[0]['state abbreviation'];
+    const stateAbbr = data.places[0]['state abbreviation'];
+    document.getElementById('state').value = stateAbbr;
+    return stateAbbr;
   } catch (error) {
     console.error('Error fetching state from zipcode:', error);
+    document.getElementById('state').value = '';
     return '';
   }
 }
+
+// Add event listener to zipcode input
+document.getElementById('zipcode')?.addEventListener('change', async (e) => {
+  const zipcode = e.target.value;
+  if (/^\d{5}(-\d{4})?$/.test(zipcode)) {
+    await getStateFromZipcode(zipcode);
+  }
+});
 
 // Submit lead data to API
 async function submitLeadData(formData) {
@@ -124,9 +135,10 @@ function nextStep(currentStep) {
     const lastName = document.getElementById('lastName').value;
     const email = document.getElementById('email').value;
     const phone = document.getElementById('phone').value;
+    const state = document.getElementById('state').value;
     const zipcode = document.getElementById('zipcode').value;
 
-    if (!firstName || !lastName || !email || !phone || !zipcode) {
+    if (!firstName || !lastName || !email || !phone || !state || !zipcode) {
       showError('Please fill in all required fields');
       return;
     }
@@ -147,8 +159,7 @@ function nextStep(currentStep) {
     }
 
     // Store data
-    Object.assign(formData, { firstName, lastName, email, phone, zipcode });
-
+    Object.assign(formData, { firstName, lastName, email, phone, state, zipcode });
   } else if (currentStep === 2) {
     // Validate Step 2
     const injuryType = document.getElementById('injuryType').value;
