@@ -40,7 +40,8 @@ async function getStateFromZipcode(zipcode) {
   try {
     const response = await fetch(`https://api.zippopotam.us/us/${zipcode}`);
     const data = await response.json();
-    return data.places[0].state;
+    // Get state abbreviation from the API response
+    return data.places[0]['state abbreviation'];
   } catch (error) {
     console.error('Error fetching state from zipcode:', error);
     return '';
@@ -81,15 +82,21 @@ async function submitLeadData(formData) {
 
     const response = await fetch('https://percallpro.leadportal.com/apiJSON.php', {
       method: 'POST',
-      mode: 'no-cors', // Add this line to handle CORS
+      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestData)
     });
 
-    // Since we're using no-cors mode, we won't get a JSON response
-    // We'll consider it successful if the request doesn't throw an error
+    // Log the response details
+    console.log('API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      type: response.type,
+      url: response.url
+    });
+
     return true;
   } catch (error) {
     console.error('Detailed error submitting lead:', {
