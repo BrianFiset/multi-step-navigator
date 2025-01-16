@@ -66,6 +66,8 @@ export async function submitLeadData(formData: FormData): Promise<boolean> {
       }
     };
 
+    console.log('Sending request with data:', requestData);
+
     const response = await fetch('https://percallpro.leadportal.com/apiJSON.php', {
       method: 'POST',
       headers: {
@@ -75,14 +77,27 @@ export async function submitLeadData(formData: FormData): Promise<boolean> {
     });
 
     if (!response.ok) {
+      console.error('API Response not OK:', {
+        status: response.status,
+        statusText: response.statusText
+      });
       throw new Error('Network response was not ok');
     }
 
     const result = await response.json();
-    console.log('Lead submission result:', result);
+    console.log('Full API Response:', {
+      status: response.status,
+      headers: Object.fromEntries(response.headers.entries()),
+      body: result
+    });
+    
     return true;
   } catch (error) {
-    console.error('Error submitting lead:', error);
+    console.error('Detailed error submitting lead:', {
+      error,
+      message: error.message,
+      stack: error.stack
+    });
     return false;
   }
 }
