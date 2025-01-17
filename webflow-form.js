@@ -59,15 +59,68 @@ document.getElementById('zipcode')?.addEventListener('change', async (e) => {
   }
 });
 
-// Submit lead data to API
-async function submitLeadData(formData) {
+// API configuration
+const API_KEY = "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a";
+const API_URL = "https://percallpro.leadportal.com/apiJSON.php";
+
+// Ping request to get lead_id and bid_id
+async function pingLeadPortal(formData) {
   try {
-    const state = await getStateFromZipcode(formData.zipcode);
-    
-    const requestData = {
+    const pingPayload = {
       Request: {
         Mode: "ping",
-        Key: "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a",
+        Key: API_KEY,
+        API_Action: "pingPostConsent",
+        TYPE: "37",
+        IP_Address: "75.2.92.149",
+        SRC: "AutoLegalUplift_",
+        State: formData.state,
+        Zip: formData.zipcode,
+        Has_Attorney: formData.hasAttorney,
+        At_Fault: formData.atFault,
+        Injured: "Yes",
+        Has_Insurance: formData.otherPartyInsured,
+        Primary_Injury: formData.injuryType,
+        Incident_Date: formData.accidentDate,
+        Skip_Dupe_Check: "1",
+        Format: "JSON"
+      }
+    };
+
+    console.log('Sending ping request with data:', pingPayload);
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(pingPayload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ping request failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Ping response:', data);
+
+    return {
+      leadId: data.response.lead_id,
+      bidId: data.response.bids.bid[0].bid_id
+    };
+  } catch (error) {
+    console.error('Error in ping request:', error);
+    throw error;
+  }
+}
+
+// Post request with lead data
+async function postLeadData(formData, leadId, bidId) {
+  try {
+    const postPayload = {
+      Request: {
+        Mode: "post",
+        Key: API_KEY,
         API_Action: "pingPostConsent",
         TYPE: "37",
         IP_Address: "75.2.92.149",
@@ -76,7 +129,7 @@ async function submitLeadData(formData) {
         Trusted_Form_URL: "Trusted_Form_URL",
         First_Name: formData.firstName,
         Last_Name: formData.lastName,
-        State: state,
+        State: formData.state,
         Zip: formData.zipcode,
         Primary_Phone: formData.phone,
         Email: formData.email,
@@ -85,28 +138,45 @@ async function submitLeadData(formData) {
         Injured: "Yes",
         Has_Insurance: formData.otherPartyInsured,
         Primary_Injury: formData.injuryType,
-        Incident_Date: formData.accidentDate
+        Incident_Date: formData.accidentDate,
+        Skip_Dupe_Check: "1",
+        Lead_ID: leadId,
+        Match_With_Bid_ID: bidId,
+        Format: "JSON"
       }
     };
 
-    console.log('Sending request with data:', requestData);
+    console.log('Sending post request with data:', postPayload);
 
-    const response = await fetch('https://percallpro.leadportal.com/apiJSON.php', {
+    const response = await fetch(API_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestData)
+      body: JSON.stringify(postPayload)
     });
 
-    // Log the response details
-    console.log('API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      type: response.type,
-      url: response.url
-    });
+    if (!response.ok) {
+      throw new Error(`Post request failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Post response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in post request:', error);
+    throw error;
+  }
+}
+
+// Submit lead data to API
+async function submitLeadData(formData) {
+  try {
+    // Step 1: Send ping request
+    const { leadId, bidId } = await pingLeadPortal(formData);
+
+    // Step 2: Send post request with lead_id and bid_id
+    await postLeadData(formData, leadId, bidId);
 
     return true;
   } catch (error) {
