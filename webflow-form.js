@@ -33,31 +33,8 @@ function isValidZipcode(zipcode) {
 
 // Show error message
 function showError(message) {
-  alert(message); // You can replace this with a more sophisticated error display
+  alert(message);
 }
-
-// Get state from zipcode
-async function getStateFromZipcode(zipcode) {
-  try {
-    const response = await fetch(`https://api.zippopotam.us/us/${zipcode}`);
-    const data = await response.json();
-    const stateAbbr = data.places[0]['state abbreviation'];
-    document.getElementById('state').value = stateAbbr;
-    return stateAbbr;
-  } catch (error) {
-    console.error('Error fetching state from zipcode:', error);
-    document.getElementById('state').value = '';
-    return '';
-  }
-}
-
-// Add event listener to zipcode input
-document.getElementById('zipcode')?.addEventListener('change', async (e) => {
-  const zipcode = e.target.value;
-  if (/^\d{5}(-\d{4})?$/.test(zipcode)) {
-    await getStateFromZipcode(zipcode);
-  }
-});
 
 // API configuration
 const API_KEY = "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a";
