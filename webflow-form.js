@@ -240,9 +240,10 @@ function nextStep(currentStep) {
     // Send ping request
     pingLeadPortal(formData).then(pingResult => {
       if (!pingResult.success) {
-        showError('Failed to process your request. Please try again.');
+        // Hide loading state and go to next step
         document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('step2').style.display = 'block';
+        document.getElementById('step3').style.display = 'block';
+        updateProgressDots(3);
         return;
       }
       
@@ -293,19 +294,13 @@ async function submitForm() {
   // Send post request with stored lead_id and bid_id
   const result = await postLeadData(formData, formData.leadId, formData.bidId);
   
-  if (!result.success) {
-    showError('Failed to submit your information. Please try again.');
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
-    return;
-  }
-  
-  // Hide loading state and show success message
+  // Hide loading state and show success message regardless of API result
   document.getElementById('loadingState').style.display = 'none';
-  alert('Form submitted successfully!');
+  document.getElementById('successState').style.display = 'block';
 }
 
 // Initialize progress dots when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
 });
+
