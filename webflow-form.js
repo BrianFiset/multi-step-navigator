@@ -105,6 +105,8 @@ async function pingLeadPortal(formData) {
 // Post request with lead data
 async function postLeadData(formData, leadId, bidId) {
   try {
+    const tcpaLanguage = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
+    
     const postPayload = {
       Request: {
         Mode: "post",
@@ -130,6 +132,8 @@ async function postLeadData(formData, leadId, bidId) {
         Skip_Dupe_Check: "1",
         Lead_ID: leadId,
         Match_With_Bid_ID: bidId,
+        TCPA_Consent: "Yes",
+        TCPA_Language: tcpaLanguage,
         Format: "JSON"
       }
     };
