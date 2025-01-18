@@ -3,10 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>multi-step-navigator</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
+    <title>Legal Assistance Form</title>
+    <link rel="stylesheet" href="webflow-styles.css">
   </head>
 
   <body>
@@ -14,7 +12,7 @@
       <div class="progress-bar">
         <span class="step-indicator">Step <span id="currentStep">1</span>/3</span>
         <div class="progress-dots">
-          <div class="dot" id="dot1"></div>
+          <div class="dot active" id="dot1"></div>
           <div class="dot" id="dot2"></div>
           <div class="dot" id="dot3"></div>
         </div>
@@ -29,21 +27,25 @@
           <div class="form-group">
             <label>First Name <span class="required">*</span></label>
             <input type="text" id="firstName" required>
+            <div class="error-message"></div>
           </div>
           
           <div class="form-group">
             <label>Last Name <span class="required">*</span></label>
             <input type="text" id="lastName" required>
+            <div class="error-message"></div>
           </div>
           
           <div class="form-group">
             <label>Email <span class="required">*</span></label>
             <input type="email" id="email" required>
+            <div class="error-message"></div>
           </div>
           
           <div class="form-group">
             <label>Phone Number <span class="required">*</span></label>
             <input type="tel" id="phone" required>
+            <div class="error-message"></div>
           </div>
         </div>
         
@@ -103,11 +105,13 @@
               <option value="WI">Wisconsin</option>
               <option value="WY">Wyoming</option>
             </select>
+            <div class="error-message"></div>
           </div>
           
           <div class="form-group">
             <label>Zipcode Of Accident <span class="required">*</span></label>
             <input type="text" id="zipcode" required>
+            <div class="error-message"></div>
           </div>
         </div>
         
@@ -221,7 +225,6 @@
         </div>
       </div>
     </div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
+    <script src="webflow-form.js"></script>
   </body>
 </html>
