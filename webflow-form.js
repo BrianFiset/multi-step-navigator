@@ -35,13 +35,32 @@ function isValidZipcode(zipcode) {
 }
 
 // Add error styling to invalid field
-function showFieldError(field) {
-  field.style.border = '1px solid #ef4444';
+function showFieldError(field, message) {
+  // Add red border
+  field.style.border = '1px solid #ff4444';
+  
+  // Create or update error message
+  let errorDiv = field.nextElementSibling;
+  if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+    errorDiv = document.createElement('div');
+    errorDiv.classList.add('error-message');
+    field.parentNode.insertBefore(errorDiv, field.nextSibling);
+  }
+  errorDiv.textContent = message;
+  errorDiv.style.color = '#ff4444';
+  errorDiv.style.fontSize = '14px';
+  errorDiv.style.marginTop = '4px';
 }
 
 // Remove error styling
 function removeFieldError(field) {
   field.style.border = '1px solid #d1d5db';
+  
+  // Remove error message if it exists
+  const errorDiv = field.nextElementSibling;
+  if (errorDiv && errorDiv.classList.contains('error-message')) {
+    errorDiv.remove();
+  }
 }
 
 // Add input event listeners to remove error on input
@@ -63,32 +82,41 @@ function nextStep(currentStep) {
     let isValid = true;
 
     if (!firstName.value) {
-      showFieldError(firstName);
+      showFieldError(firstName, 'First name is required');
       isValid = false;
     }
     
     if (!lastName.value) {
-      showFieldError(lastName);
+      showFieldError(lastName, 'Last name is required');
       isValid = false;
     }
     
-    if (!email.value || !isValidEmail(email.value)) {
-      showFieldError(email);
+    if (!email.value) {
+      showFieldError(email, 'Email is required');
+      isValid = false;
+    } else if (!isValidEmail(email.value)) {
+      showFieldError(email, 'Please enter a valid email');
       isValid = false;
     }
     
-    if (!phone.value || !isValidPhone(phone.value)) {
-      showFieldError(phone);
+    if (!phone.value) {
+      showFieldError(phone, 'Phone number is required');
+      isValid = false;
+    } else if (!isValidPhone(phone.value)) {
+      showFieldError(phone, 'Please enter a valid phone number');
       isValid = false;
     }
     
     if (!state.value) {
-      showFieldError(state);
+      showFieldError(state, 'State is required');
       isValid = false;
     }
     
-    if (!zipcode.value || !isValidZipcode(zipcode.value)) {
-      showFieldError(zipcode);
+    if (!zipcode.value) {
+      showFieldError(zipcode, 'Zipcode is required');
+      isValid = false;
+    } else if (!isValidZipcode(zipcode.value)) {
+      showFieldError(zipcode, 'Please enter a valid zipcode');
       isValid = false;
     }
 
@@ -122,12 +150,12 @@ function nextStep(currentStep) {
 
     // Validate dropdown selections
     if (!injuryType.value || injuryType.value === "") {
-      showFieldError(injuryType);
+      showFieldError(injuryType, 'Injury type is required');
       isValid = false;
     }
     
     if (!accidentDate.value || accidentDate.value === "") {
-      showFieldError(accidentDate);
+      showFieldError(accidentDate, 'Accident date is required');
       isValid = false;
     }
 
@@ -202,7 +230,7 @@ async function submitForm() {
   const tcpaConsent = document.getElementById('tcpaConsent');
   
   if (!tcpaConsent.checked) {
-    showFieldError(tcpaConsent);
+    showFieldError(tcpaConsent, 'You must consent to be contacted');
     tcpaConsent.closest('.checkbox-label').style.color = '#ef4444';
     return;
   }
