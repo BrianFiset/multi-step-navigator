@@ -15,7 +15,8 @@ let formData = {
   accidentDescription: '',
   tcpaConsent: false,
   leadId: '',
-  bidId: ''
+  bidId: '',
+  companyName: 'LegalUpLift' // Default company name
 };
 
 // Validate email format
@@ -80,6 +81,11 @@ async function pingLeadPortal(formData) {
 
     const data = await response.json();
     console.log('Ping Response:', data);
+    
+    // Extract company name from the first bid's seller_company_name
+    if (data.response?.bids?.bid?.[0]?.seller_company_name) {
+      formData.companyName = data.response.bids.bid[0].seller_company_name;
+    }
     
     return {
       leadId: data.response.lead_id,
@@ -239,6 +245,12 @@ function nextStep(currentStep) {
       // Store the IDs for later use in submission
       formData.leadId = pingResult.leadId;
       formData.bidId = pingResult.bidId;
+      
+      // Update TCPA text with company name
+      const tcpaText = document.getElementById('tcpaText');
+      if (tcpaText) {
+        tcpaText.textContent = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
+      }
       
       // Continue to step 3
       setTimeout(() => {
