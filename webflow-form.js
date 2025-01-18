@@ -239,17 +239,11 @@ function nextStep(currentStep) {
     
     // Send ping request
     pingLeadPortal(formData).then(pingResult => {
-      if (!pingResult.success) {
-        // Hide loading state and go to next step
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('step3').style.display = 'block';
-        updateProgressDots(3);
-        return;
+      // Store the IDs for later use in submission, even if ping failed
+      if (pingResult.success) {
+        formData.leadId = pingResult.leadId;
+        formData.bidId = pingResult.bidId;
       }
-      
-      // Store the IDs for later use in submission
-      formData.leadId = pingResult.leadId;
-      formData.bidId = pingResult.bidId;
       
       // Update TCPA text with company name
       const tcpaText = document.getElementById('tcpaText');
@@ -257,7 +251,7 @@ function nextStep(currentStep) {
         tcpaText.textContent = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
       }
       
-      // Continue to step 3
+      // Continue to step 3 regardless of API result
       setTimeout(() => {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
@@ -303,4 +297,3 @@ async function submitForm() {
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
 });
-
