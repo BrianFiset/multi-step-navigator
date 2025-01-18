@@ -66,11 +66,10 @@ async function pingLeadPortal(formData) {
       }
     };
 
-    console.log('Sending ping request with payload:', JSON.stringify(pingPayload, null, 2));
+    console.log('Ping Request:', pingPayload);
 
     const response = await fetch(API_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -79,29 +78,16 @@ async function pingLeadPortal(formData) {
       body: JSON.stringify(pingPayload)
     });
 
-    console.log('Ping API Response Headers:', Object.fromEntries(response.headers.entries()));
-    console.log('Ping API Response Status:', response.status);
-
-    // Wait for 2 seconds to ensure the ping request is processed
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Generate mock values since we're using no-cors
-    const mockLeadId = new Date().getTime().toString();
-    const mockBidId = Math.random().toString(36).substring(7);
-    
-    console.log('Generated mock values:', { mockLeadId, mockBidId });
+    const data = await response.json();
+    console.log('Ping Response:', data);
     
     return {
-      leadId: mockLeadId,
-      bidId: mockBidId,
+      leadId: data.response.lead_id,
+      bidId: data.response.bids.bid[0].bid_id,
       success: true
     };
   } catch (error) {
-    console.error('Detailed error in ping request:', {
-      error,
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Error in ping request:', error);
     return {
       leadId: '',
       bidId: '',
@@ -142,11 +128,10 @@ async function postLeadData(formData, leadId, bidId) {
       }
     };
 
-    console.log('Sending post request with payload:', JSON.stringify(postPayload, null, 2));
+    console.log('Post Request:', postPayload);
 
     const response = await fetch(API_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -155,47 +140,13 @@ async function postLeadData(formData, leadId, bidId) {
       body: JSON.stringify(postPayload)
     });
 
-    console.log('Post API Response Headers:', Object.fromEntries(response.headers.entries()));
-    console.log('Post API Response Status:', response.status);
+    const data = await response.json();
+    console.log('Post Response:', data);
 
     return { success: true };
   } catch (error) {
-    console.error('Detailed error in post request:', {
-      error,
-      message: error.message,
-      stack: error.stack
-    });
+    console.error('Error in post request:', error);
     return { success: false };
-  }
-}
-
-// Submit lead data to API
-async function submitLeadData(formData) {
-  try {
-    console.log('Starting lead submission process with form data:', JSON.stringify(formData, null, 2));
-    
-    // Step 1: Send ping request and wait for response
-    const pingResult = await pingLeadPortal(formData);
-    console.log('Ping request completed with:', pingResult);
-
-    if (!pingResult.success) {
-      console.error('Ping request failed');
-      return false;
-    }
-
-    // Step 2: Send post request with lead_id and bid_id
-    const result = await postLeadData(formData, pingResult.leadId, pingResult.bidId);
-    console.log('Post request completed with result:', result);
-
-    return result.success;
-  } catch (error) {
-    console.error('Detailed error in lead submission:', {
-      error,
-      message: error.message,
-      stack: error.stack,
-      formData: JSON.stringify(formData, null, 2)
-    });
-    return false;
   }
 }
 
