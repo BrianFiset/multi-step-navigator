@@ -13,7 +13,9 @@ let formData = {
   otherPartyInsured: '',
   soughtMedicalAttention: '',
   accidentDescription: '',
-  tcpaConsent: false
+  tcpaConsent: false,
+  leadId: '',
+  bidId: ''
 };
 
 // Validate email format
@@ -238,6 +240,12 @@ function nextStep(currentStep) {
 
     // Store data
     Object.assign(formData, { firstName, lastName, email, phone, state, zipcode });
+    
+    // Move to step 2
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    updateProgressDots(2);
+    
   } else if (currentStep === 2) {
     // Validate Step 2
     const injuryType = document.getElementById('injuryType').value;
@@ -268,16 +276,20 @@ function nextStep(currentStep) {
     document.getElementById('step2').style.display = 'none';
     document.getElementById('loadingState').style.display = 'flex';
     
-    // Submit lead data and handle response
-    submitLeadData(formData).then(success => {
-      if (!success) {
-        showError('Failed to submit lead data');
+    // Send ping request
+    pingLeadPortal(formData).then(pingResult => {
+      if (!pingResult.success) {
+        showError('Failed to process your request. Please try again.');
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('step2').style.display = 'block';
         return;
       }
       
-      // Continue to step 3 after successful submission
+      // Store the IDs for later use in submission
+      formData.leadId = pingResult.leadId;
+      formData.bidId = pingResult.bidId;
+      
+      // Continue to step 3
       setTimeout(() => {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('step3').style.display = 'block';
@@ -287,11 +299,6 @@ function nextStep(currentStep) {
     
     return; // Exit here as we're handling the transition with setTimeout
   }
-
-  // Hide current step and show next step
-  document.getElementById(`step${currentStep}`).style.display = 'none';
-  document.getElementById(`step${currentStep + 1}`).style.display = 'block';
-  updateProgressDots(currentStep + 1);
 }
 
 // Navigate to previous step
@@ -302,7 +309,7 @@ function previousStep(currentStep) {
 }
 
 // Submit form
-function submitForm() {
+async function submitForm() {
   const tcpaConsent = document.getElementById('tcpaConsent').checked;
   
   if (!tcpaConsent) {
@@ -312,8 +319,22 @@ function submitForm() {
 
   formData.tcpaConsent = tcpaConsent;
   
-  // Here you can send the formData to your server or handle it as needed
-  console.log('Form submitted:', formData);
+  // Show loading state
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  
+  // Send post request with stored lead_id and bid_id
+  const result = await postLeadData(formData, formData.leadId, formData.bidId);
+  
+  if (!result.success) {
+    showError('Failed to submit your information. Please try again.');
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    return;
+  }
+  
+  // Hide loading state and show success message
+  document.getElementById('loadingState').style.display = 'none';
   alert('Form submitted successfully!');
 }
 
