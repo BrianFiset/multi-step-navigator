@@ -79,9 +79,11 @@ async function pingLeadPortal(formData) {
 
     console.log('Ping API Response Headers:', Object.fromEntries(response.headers.entries()));
     console.log('Ping API Response Status:', response.status);
+
+    // Wait for 2 seconds to ensure the ping request is processed
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Since we're using no-cors, we won't be able to read the response
-    // Generate mock values to continue the flow
+    // Generate mock values since we're using no-cors
     const mockLeadId = new Date().getTime().toString();
     const mockBidId = Math.random().toString(36).substring(7);
     
@@ -89,7 +91,8 @@ async function pingLeadPortal(formData) {
     
     return {
       leadId: mockLeadId,
-      bidId: mockBidId
+      bidId: mockBidId,
+      success: true
     };
   } catch (error) {
     console.error('Detailed error in ping request:', {
@@ -97,10 +100,10 @@ async function pingLeadPortal(formData) {
       message: error.message,
       stack: error.stack
     });
-    // Still return mock values to continue the flow
     return {
-      leadId: new Date().getTime().toString(),
-      bidId: Math.random().toString(36).substring(7)
+      leadId: '',
+      bidId: '',
+      success: false
     };
   }
 }
@@ -153,7 +156,6 @@ async function postLeadData(formData, leadId, bidId) {
     console.log('Post API Response Headers:', Object.fromEntries(response.headers.entries()));
     console.log('Post API Response Status:', response.status);
 
-    // Since we're using no-cors, assume success if no error was thrown
     return { success: true };
   } catch (error) {
     console.error('Detailed error in post request:', {
@@ -161,8 +163,7 @@ async function postLeadData(formData, leadId, bidId) {
       message: error.message,
       stack: error.stack
     });
-    // Return success anyway to continue the flow
-    return { success: true };
+    return { success: false };
   }
 }
 
@@ -171,15 +172,20 @@ async function submitLeadData(formData) {
   try {
     console.log('Starting lead submission process with form data:', JSON.stringify(formData, null, 2));
     
-    // Step 1: Send ping request
-    const { leadId, bidId } = await pingLeadPortal(formData);
-    console.log('Ping request completed with:', { leadId, bidId });
+    // Step 1: Send ping request and wait for response
+    const pingResult = await pingLeadPortal(formData);
+    console.log('Ping request completed with:', pingResult);
+
+    if (!pingResult.success) {
+      console.error('Ping request failed');
+      return false;
+    }
 
     // Step 2: Send post request with lead_id and bid_id
-    const result = await postLeadData(formData, leadId, bidId);
+    const result = await postLeadData(formData, pingResult.leadId, pingResult.bidId);
     console.log('Post request completed with result:', result);
 
-    return true;
+    return result.success;
   } catch (error) {
     console.error('Detailed error in lead submission:', {
       error,
@@ -187,8 +193,7 @@ async function submitLeadData(formData) {
       stack: error.stack,
       formData: JSON.stringify(formData, null, 2)
     });
-    // Return true anyway to continue the flow since we can't verify the actual response
-    return true;
+    return false;
   }
 }
 
