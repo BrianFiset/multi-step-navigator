@@ -275,7 +275,7 @@ async function submitForm() {
   const tcpaConsent = document.getElementById('tcpaConsent').checked;
   
   if (!tcpaConsent) {
-    showError('Please accept the consent agreement');
+    showError('Please accept the consent agreement to continue');
     return;
   }
 
