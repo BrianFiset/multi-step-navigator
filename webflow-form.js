@@ -40,7 +40,7 @@ function showError(message) {
 
 // API configuration
 const API_KEY = "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a";
-const API_URL = "https://percallpro.leadportal.com/apiJSON.php";
+const API_URL = "https://api.fisetbrian.workers.dev/";
 
 // Ping request to get lead_id and bid_id
 async function pingLeadPortal(formData) {
