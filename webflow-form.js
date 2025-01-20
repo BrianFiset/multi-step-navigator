@@ -19,7 +19,7 @@ let formData = {
   companyName: 'LegalUpLift' // Default company name
 };
 
-// Validation functions
+// Validate email format
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -56,10 +56,10 @@ async function pingLeadPortal(formData) {
         SRC: "AutoLegalUplift_",
         State: formData.state,
         Zip: formData.zipcode,
-        Has_Attorney: formData.hasAttorney,
-        At_Fault: formData.atFault,
+        Has_Attorney: formData.hasAttorney === 'yes' ? 'Yes' : 'No',
+        At_Fault: formData.atFault === 'yes' ? 'Yes' : 'No',
         Injured: "Yes",
-        Has_Insurance: formData.otherPartyInsured,
+        Has_Insurance: formData.otherPartyInsured === 'yes' ? 'Yes' : 'No',
         Primary_Injury: formData.injuryType,
         Incident_Date: formData.accidentDate,
         Skip_Dupe_Check: "1",
@@ -79,34 +79,25 @@ async function pingLeadPortal(formData) {
       body: JSON.stringify(pingPayload)
     });
 
-    const data = await response.json();
-    console.log('Ping Response:', data);
-
-    // Check if response has the expected structure
-    if (!data.response || !data.response.lead_id) {
-      console.error('Invalid response structure - missing lead_id:', data);
-      throw new Error('Invalid response structure - missing lead_id');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Safely extract bid_id with fallback
-    let bidId = '';
-    if (data.response.bids && 
-        Array.isArray(data.response.bids.bid) && 
-        data.response.bids.bid.length > 0 && 
-        data.response.bids.bid[0].bid_id) {
-      bidId = data.response.bids.bid[0].bid_id;
-      
-      // Extract company name if available
-      if (data.response.bids.bid[0].seller_company_name) {
-        formData.companyName = data.response.bids.bid[0].seller_company_name;
-      }
-    } else {
-      console.warn('No bid information found in response:', data);
+    const data = await response.json();
+    console.log('Ping Response:', data);
+    
+    if (!data.response || !data.response.lead_id || !data.response.bids?.bid?.[0]?.bid_id) {
+      throw new Error('Invalid response format from API');
+    }
+    
+    // Extract company name from the first bid's seller_company_name
+    if (data.response?.bids?.bid?.[0]?.seller_company_name) {
+      formData.companyName = data.response.bids.bid[0].seller_company_name;
     }
     
     return {
       leadId: data.response.lead_id,
-      bidId: bidId,
+      bidId: data.response.bids.bid[0].bid_id,
       success: true
     };
   } catch (error) {
@@ -140,10 +131,10 @@ async function postLeadData(formData, leadId, bidId) {
         Zip: formData.zipcode,
         Primary_Phone: formData.phone,
         Email: formData.email,
-        Has_Attorney: formData.hasAttorney,
-        At_Fault: formData.atFault,
+        Has_Attorney: formData.hasAttorney === 'yes' ? 'Yes' : 'No',
+        At_Fault: formData.atFault === 'yes' ? 'Yes' : 'No',
         Injured: "Yes",
-        Has_Insurance: formData.otherPartyInsured,
+        Has_Insurance: formData.otherPartyInsured === 'yes' ? 'Yes' : 'No',
         Primary_Injury: formData.injuryType,
         Incident_Date: formData.accidentDate,
         Skip_Dupe_Check: "1",
@@ -167,6 +158,10 @@ async function postLeadData(formData, leadId, bidId) {
       body: JSON.stringify(postPayload)
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
     console.log('Post Response:', data);
 
@@ -177,7 +172,6 @@ async function postLeadData(formData, leadId, bidId) {
   }
 }
 
-// Progress dots update
 function updateProgressDots(step) {
   document.getElementById('currentStep').textContent = step;
   for (let i = 1; i <= 3; i++) {
@@ -186,7 +180,7 @@ function updateProgressDots(step) {
   }
 }
 
-// Navigation functions
+// Navigate to next step
 function nextStep(currentStep) {
   if (currentStep === 1) {
     // Validate Step 1
@@ -304,26 +298,89 @@ async function submitForm() {
 
   formData.tcpaConsent = tcpaConsent;
   
-  // Show loading state
-  document.getElementById('step3').style.display = 'none';
-  document.getElementById('loadingState').style.display = 'flex';
+  // Show loading state and hide the form content
+  const step3Content = document.getElementById('step3');
+  const loadingState = document.getElementById('loadingState');
+  const formButtons = step3Content.querySelector('.button-group');
+  const consentGroup = step3Content.querySelector('.form-group');
   
-  // Send post request with stored lead_id and bid_id
-  const result = await postLeadData(formData, formData.leadId, formData.bidId);
+  formButtons.style.display = 'none';
+  consentGroup.style.display = 'none';
+  loadingState.style.display = 'flex';
   
-  if (!result.success) {
-    showError('Failed to submit your information. Please try again.');
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
-    return;
+  try {
+    // Send post request with stored lead_id and bid_id
+    const result = await postLeadData(formData, formData.leadId, formData.bidId);
+    
+    // Hide loading state
+    loadingState.style.display = 'none';
+    
+    if (result.success) {
+      // Show success screen
+      document.getElementById('successScreen').style.display = 'flex';
+    } else {
+      // Show error screen
+      document.getElementById('errorScreen').style.display = 'flex';
+    }
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    // Hide loading state and show error screen
+    loadingState.style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'flex';
   }
-  
-  // Hide loading state and show success message
-  document.getElementById('loadingState').style.display = 'none';
-  alert('Form submitted successfully!');
 }
 
-// Initialize progress dots
+// Reset form function for the try again button
+function resetForm() {
+  // Hide error screen and show form content
+  const step3Content = document.getElementById('step3');
+  const formButtons = step3Content.querySelector('.button-group');
+  const consentGroup = step3Content.querySelector('.form-group');
+  const errorScreen = document.getElementById('errorScreen');
+  
+  errorScreen.style.display = 'none';
+  formButtons.style.display = 'flex';
+  consentGroup.style.display = 'block';
+  
+  // Reset form data
+  formData = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    state: '',
+    zipcode: '',
+    injuryType: '',
+    accidentDate: '',
+    atFault: '',
+    hasAttorney: '',
+    otherPartyInsured: '',
+    soughtMedicalAttention: '',
+    accidentDescription: '',
+    tcpaConsent: false,
+    leadId: '',
+    bidId: '',
+    companyName: 'LegalUpLift'
+  };
+  
+  // Clear all form inputs
+  const inputs = document.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    if (input.type === 'radio' || input.type === 'checkbox') {
+      input.checked = false;
+    } else {
+      input.value = '';
+    }
+  });
+  
+  // Show first step
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'none';
+  updateProgressDots(1);
+}
+
+// Initialize progress dots when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
 });
