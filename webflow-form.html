@@ -176,6 +176,7 @@
     </div>
   </div>
 
+  <!-- Step 3 -->
   <div class="form-step" id="step3" style="display: none;">
     <h2>Final Step</h2>
     <p>Please review and confirm your consent.</p>
@@ -191,37 +192,37 @@
       <button onclick="previousStep(3)" class="prev-btn">Previous</button>
       <button onclick="submitForm()" class="submit-btn">Submit</button>
     </div>
-  </div>
 
-  <!-- Loading State -->
-  <div class="loading-state" id="loadingState" style="display: none;">
-    <div class="spinner"></div>
-    <p>Searching for Available Partners...</p>
-  </div>
-
-  <!-- Success Screen -->
-  <div class="success-screen" id="successScreen" style="display: none;">
-    <div class="success-content">
-      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
-        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
-        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-      </svg>
-      <h2>Thank You!</h2>
-      <p>Your form has been successfully submitted. We will contact you shortly.</p>
+    <!-- Loading State -->
+    <div class="loading-state" id="loadingState" style="display: none;">
+      <div class="spinner"></div>
+      <p>Searching for Available Partners...</p>
     </div>
-  </div>
 
-  <!-- Error Screen -->
-  <div class="error-screen" id="errorScreen" style="display: none;">
-    <div class="error-content">
-      <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="15" y1="9" x2="9" y2="15"/>
-        <line x1="9" y1="9" x2="15" y2="15"/>
-      </svg>
-      <h2>Oops! Something went wrong</h2>
-      <p>There was an error submitting your form. Please try again.</p>
-      <button onclick="resetForm()" class="try-again-btn">Try Again</button>
+    <!-- Success Screen -->
+    <div class="success-screen" id="successScreen" style="display: none;">
+      <div class="success-content">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+        <h2>Thank You!</h2>
+        <p>Your form has been successfully submitted. We will contact you shortly.</p>
+      </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div class="error-screen" id="errorScreen" style="display: none;">
+      <div class="error-content">
+        <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <h2>Oops! Something went wrong</h2>
+        <p>There was an error submitting your form. Please try again.</p>
+        <button onclick="resetForm()" class="try-again-btn">Try Again</button>
+      </div>
     </div>
   </div>
 </div>
