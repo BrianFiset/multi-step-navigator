@@ -290,19 +290,67 @@ async function submitForm() {
   document.getElementById('step3').style.display = 'none';
   document.getElementById('loadingState').style.display = 'flex';
   
-  // Send post request with stored lead_id and bid_id
-  const result = await postLeadData(formData, formData.leadId, formData.bidId);
-  
-  if (!result.success) {
-    showError('Failed to submit your information. Please try again.');
+  try {
+    // Send post request with stored lead_id and bid_id
+    const result = await postLeadData(formData, formData.leadId, formData.bidId);
+    
+    // Hide loading state
     document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('step3').style.display = 'block';
-    return;
+    
+    if (result.success) {
+      // Show success screen
+      document.getElementById('successScreen').style.display = 'flex';
+    } else {
+      // Show error screen
+      document.getElementById('errorScreen').style.display = 'flex';
+    }
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    // Hide loading state and show error screen
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorScreen').style.display = 'flex';
   }
+}
+
+// Reset form function for the try again button
+function resetForm() {
+  // Hide error screen
+  document.getElementById('errorScreen').style.display = 'none';
   
-  // Hide loading state and show success message
-  document.getElementById('loadingState').style.display = 'none';
-  alert('Form submitted successfully!');
+  // Reset form data
+  formData = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    state: '',
+    zipcode: '',
+    injuryType: '',
+    accidentDate: '',
+    atFault: '',
+    hasAttorney: '',
+    otherPartyInsured: '',
+    soughtMedicalAttention: '',
+    accidentDescription: '',
+    tcpaConsent: false,
+    leadId: '',
+    bidId: '',
+    companyName: 'LegalUpLift'
+  };
+  
+  // Clear all form inputs
+  const inputs = document.querySelectorAll('input, select, textarea');
+  inputs.forEach(input => {
+    if (input.type === 'radio' || input.type === 'checkbox') {
+      input.checked = false;
+    } else {
+      input.value = '';
+    }
+  });
+  
+  // Show first step
+  document.getElementById('step1').style.display = 'block';
+  updateProgressDots(1);
 }
 
 // Initialize progress dots when page loads
