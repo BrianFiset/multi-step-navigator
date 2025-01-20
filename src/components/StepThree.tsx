@@ -3,7 +3,6 @@ import { FormData } from "./MultiStepForm";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
 
 interface StepThreeProps {
   onSubmit: (data: Partial<FormData>) => void;
@@ -23,7 +22,6 @@ export const StepThree = ({ onSubmit, onPrevious, initialData }: StepThreeProps)
 
   const onSubmitForm = (data: Partial<FormData>) => {
     if (!watch("tcpaConsent")) {
-      toast.error("Please accept the consent agreement to continue");
       return;
     }
     onSubmit(data);
@@ -32,10 +30,9 @@ export const StepThree = ({ onSubmit, onPrevious, initialData }: StepThreeProps)
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6">
       <div className="space-y-4">
-        <div className="flex items-start space-x-2">
+        <div className="flex items-center space-x-2">
           <Checkbox
             id="tcpaConsent"
-            required
             onCheckedChange={(checked) => {
               setValue("tcpaConsent", checked ? "true" : "false");
             }}

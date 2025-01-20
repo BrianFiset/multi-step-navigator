@@ -34,219 +34,9 @@ function isValidZipcode(zipcode) {
   return /^\d{5}(-\d{4})?$/.test(zipcode);
 }
 
-// Add error styling to invalid field
-function showFieldError(field, message) {
-  // Add red border
-  field.style.border = '1px solid #ff4444';
-  
-  // Create or update error message
-  let errorDiv = field.nextElementSibling;
-  if (!errorDiv || !errorDiv.classList.contains('error-message')) {
-    errorDiv = document.createElement('div');
-    errorDiv.classList.add('error-message');
-    field.parentNode.insertBefore(errorDiv, field.nextSibling);
-  }
-  errorDiv.textContent = message;
-  errorDiv.style.color = '#ff4444';
-  errorDiv.style.fontSize = '14px';
-  errorDiv.style.marginTop = '4px';
-}
-
-// Remove error styling
-function removeFieldError(field) {
-  field.style.border = '1px solid #d1d5db';
-  
-  // Remove error message if it exists
-  const errorDiv = field.nextElementSibling;
-  if (errorDiv && errorDiv.classList.contains('error-message')) {
-    errorDiv.remove();
-  }
-}
-
-// Add input event listeners to remove error on input
-document.querySelectorAll('input, select, textarea').forEach(field => {
-  field.addEventListener('input', () => removeFieldError(field));
-});
-
-// Navigate to next step
-function nextStep(currentStep) {
-  if (currentStep === 1) {
-    // Validate Step 1
-    const firstName = document.getElementById('firstName');
-    const lastName = document.getElementById('lastName');
-    const email = document.getElementById('email');
-    const phone = document.getElementById('phone');
-    const state = document.getElementById('state');
-    const zipcode = document.getElementById('zipcode');
-    
-    let isValid = true;
-
-    if (!firstName.value) {
-      showFieldError(firstName, 'First name is required');
-      isValid = false;
-    }
-    
-    if (!lastName.value) {
-      showFieldError(lastName, 'Last name is required');
-      isValid = false;
-    }
-    
-    if (!email.value) {
-      showFieldError(email, 'Email is required');
-      isValid = false;
-    } else if (!isValidEmail(email.value)) {
-      showFieldError(email, 'Please enter a valid email');
-      isValid = false;
-    }
-    
-    if (!phone.value) {
-      showFieldError(phone, 'Phone number is required');
-      isValid = false;
-    } else if (!isValidPhone(phone.value)) {
-      showFieldError(phone, 'Please enter a valid phone number');
-      isValid = false;
-    }
-    
-    if (!state.value) {
-      showFieldError(state, 'State is required');
-      isValid = false;
-    }
-    
-    if (!zipcode.value) {
-      showFieldError(zipcode, 'Zipcode is required');
-      isValid = false;
-    } else if (!isValidZipcode(zipcode.value)) {
-      showFieldError(zipcode, 'Please enter a valid zipcode');
-      isValid = false;
-    }
-
-    if (!isValid) return;
-
-    // Store data
-    Object.assign(formData, {
-      firstName: firstName.value,
-      lastName: lastName.value,
-      email: email.value,
-      phone: phone.value,
-      state: state.value,
-      zipcode: zipcode.value
-    });
-    
-    // Move to step 2
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = 'block';
-    updateProgressDots(2);
-    
-  } else if (currentStep === 2) {
-    // Validate Step 2
-    const injuryType = document.getElementById('injuryType');
-    const accidentDate = document.getElementById('accidentDate');
-    const atFaultInputs = document.querySelectorAll('input[name="atFault"]');
-    const hasAttorneyInputs = document.querySelectorAll('input[name="hasAttorney"]');
-    const otherPartyInsuredInputs = document.querySelectorAll('input[name="otherPartyInsured"]');
-    const soughtMedicalAttentionInputs = document.querySelectorAll('input[name="soughtMedicalAttention"]');
-    
-    let isValid = true;
-
-    // Validate dropdown selections
-    if (!injuryType.value || injuryType.value === "") {
-      showFieldError(injuryType, 'Injury type is required');
-      isValid = false;
-    }
-    
-    if (!accidentDate.value || accidentDate.value === "") {
-      showFieldError(accidentDate, 'Accident date is required');
-      isValid = false;
-    }
-
-    // Validate radio button groups
-    const validateRadioGroup = (inputs, groupName) => {
-      const isChecked = Array.from(inputs).some(input => input.checked);
-      if (!isChecked) {
-        inputs.forEach(input => {
-          input.closest('.radio-group').style.border = '1px solid #ef4444';
-          input.closest('.radio-group').style.borderRadius = '0.375rem';
-          input.closest('.radio-group').style.padding = '0.5rem';
-        });
-        isValid = false;
-      }
-    };
-
-    validateRadioGroup(atFaultInputs, 'atFault');
-    validateRadioGroup(hasAttorneyInputs, 'hasAttorney');
-    validateRadioGroup(otherPartyInsuredInputs, 'otherPartyInsured');
-    validateRadioGroup(soughtMedicalAttentionInputs, 'soughtMedicalAttention');
-
-    if (!isValid) return;
-
-    // Store data
-    Object.assign(formData, {
-      injuryType: injuryType.value,
-      accidentDate: accidentDate.value,
-      atFault: document.querySelector('input[name="atFault"]:checked')?.value,
-      hasAttorney: document.querySelector('input[name="hasAttorney"]:checked')?.value,
-      otherPartyInsured: document.querySelector('input[name="otherPartyInsured"]:checked')?.value,
-      soughtMedicalAttention: document.querySelector('input[name="soughtMedicalAttention"]:checked')?.value,
-      accidentDescription: document.getElementById('accidentDescription').value
-    });
-
-    // Show loading state
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('loadingState').style.display = 'flex';
-    
-    // Send ping request
-    pingLeadPortal(formData).then(pingResult => {
-      if (pingResult.success) {
-        formData.leadId = pingResult.leadId;
-        formData.bidId = pingResult.bidId;
-      }
-      
-      // Update TCPA text with company name
-      const tcpaText = document.getElementById('tcpaText');
-      if (tcpaText) {
-        tcpaText.textContent = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
-      }
-      
-      setTimeout(() => {
-        document.getElementById('loadingState').style.display = 'none';
-        document.getElementById('step3').style.display = 'block';
-        updateProgressDots(3);
-      }, 3000);
-    });
-    
-    return;
-  }
-}
-
-// Navigate to previous step
-function previousStep(currentStep) {
-  document.getElementById(`step${currentStep}`).style.display = 'none';
-  document.getElementById(`step${currentStep - 1}`).style.display = 'block';
-  updateProgressDots(currentStep - 1);
-}
-
-// Submit form
-async function submitForm() {
-  const tcpaConsent = document.getElementById('tcpaConsent');
-  
-  if (!tcpaConsent.checked) {
-    showFieldError(tcpaConsent, 'You must consent to be contacted');
-    tcpaConsent.closest('.checkbox-label').style.color = '#ef4444';
-    return;
-  }
-
-  formData.tcpaConsent = tcpaConsent.checked;
-  
-  // Show loading state
-  document.getElementById('step3').style.display = 'none';
-  document.getElementById('loadingState').style.display = 'flex';
-  
-  // Send post request with stored lead_id and bid_id
-  const result = await postLeadData(formData, formData.leadId, formData.bidId);
-  
-  // Hide loading state and show success message regardless of API result
-  document.getElementById('loadingState').style.display = 'none';
-  document.getElementById('successState').style.display = 'block';
+// Show error message
+function showError(message) {
+  alert(message);
 }
 
 // API configuration
@@ -378,23 +168,144 @@ function updateProgressDots(step) {
   }
 }
 
+// Navigate to next step
+function nextStep(currentStep) {
+  if (currentStep === 1) {
+    // Validate Step 1
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const email = document.getElementById('email').value;
+    const phone = document.getElementById('phone').value;
+    const state = document.getElementById('state').value;
+    const zipcode = document.getElementById('zipcode').value;
+
+    if (!firstName || !lastName || !email || !phone || !state || !zipcode) {
+      showError('Please fill in all required fields');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showError('Please enter a valid email address');
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      showError('Please enter a valid phone number');
+      return;
+    }
+
+    if (!isValidZipcode(zipcode)) {
+      showError('Please enter a valid zipcode');
+      return;
+    }
+
+    // Store data
+    Object.assign(formData, { firstName, lastName, email, phone, state, zipcode });
+    
+    // Move to step 2
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    updateProgressDots(2);
+    
+  } else if (currentStep === 2) {
+    // Validate Step 2
+    const injuryType = document.getElementById('injuryType').value;
+    const accidentDate = document.getElementById('accidentDate').value;
+    const atFault = document.querySelector('input[name="atFault"]:checked')?.value;
+    const hasAttorney = document.querySelector('input[name="hasAttorney"]:checked')?.value;
+    const otherPartyInsured = document.querySelector('input[name="otherPartyInsured"]:checked')?.value;
+    const soughtMedicalAttention = document.querySelector('input[name="soughtMedicalAttention"]:checked')?.value;
+    const accidentDescription = document.getElementById('accidentDescription').value;
+
+    if (!injuryType || !accidentDate || !atFault || !hasAttorney || !otherPartyInsured || !soughtMedicalAttention) {
+      showError('Please fill in all required fields');
+      return;
+    }
+
+    // Store data
+    Object.assign(formData, {
+      injuryType,
+      accidentDate,
+      atFault,
+      hasAttorney,
+      otherPartyInsured,
+      soughtMedicalAttention,
+      accidentDescription
+    });
+
+    // Show loading state
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'flex';
+    
+    // Send ping request
+    pingLeadPortal(formData).then(pingResult => {
+      if (!pingResult.success) {
+        showError('Failed to process your request. Please try again.');
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        return;
+      }
+      
+      // Store the IDs for later use in submission
+      formData.leadId = pingResult.leadId;
+      formData.bidId = pingResult.bidId;
+      
+      // Update TCPA text with company name
+      const tcpaText = document.getElementById('tcpaText');
+      if (tcpaText) {
+        tcpaText.textContent = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
+      }
+      
+      // Continue to step 3
+      setTimeout(() => {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+        updateProgressDots(3);
+      }, 3000);
+    });
+    
+    return; // Exit here as we're handling the transition with setTimeout
+  }
+}
+
+// Navigate to previous step
+function previousStep(currentStep) {
+  document.getElementById(`step${currentStep}`).style.display = 'none';
+  document.getElementById(`step${currentStep - 1}`).style.display = 'block';
+  updateProgressDots(currentStep - 1);
+}
+
+// Submit form
+async function submitForm() {
+  const tcpaConsent = document.getElementById('tcpaConsent').checked;
+  
+  if (!tcpaConsent) {
+    showError('Please accept the consent agreement');
+    return;
+  }
+
+  formData.tcpaConsent = tcpaConsent;
+  
+  // Show loading state
+  document.getElementById('step3').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'flex';
+  
+  // Send post request with stored lead_id and bid_id
+  const result = await postLeadData(formData, formData.leadId, formData.bidId);
+  
+  if (!result.success) {
+    showError('Failed to submit your information. Please try again.');
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    return;
+  }
+  
+  // Hide loading state and show success message
+  document.getElementById('loadingState').style.display = 'none';
+  alert('Form submitted successfully!');
+}
+
 // Initialize progress dots when page loads
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
-  
-  // Add input listeners to radio groups to remove error styling
-  document.querySelectorAll('.radio-group').forEach(group => {
-    group.addEventListener('change', () => {
-      group.style.border = 'none';
-      group.style.padding = '0';
-    });
-  });
-  
-  // Add change listener to TCPA checkbox to remove error styling
-  document.getElementById('tcpaConsent').addEventListener('change', function() {
-    if (this.checked) {
-      removeFieldError(this);
-      this.closest('.checkbox-label').style.color = '#4b5563';
-    }
-  });
 });

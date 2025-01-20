@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StepOne } from "./StepOne";
 import { StepTwo } from "./StepTwo";
 import { StepThree } from "./StepThree";
+import { toast } from "sonner";
 import { submitLeadData } from "@/services/leadPortalService";
 
 export interface FormData {
@@ -42,18 +43,37 @@ export const MultiStepForm = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSearching, setIsSearching] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     if (isSearching) {
-      const timer = setTimeout(() => {
-        setIsSearching(false);
-        setStep(3);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
+      const submitData = async () => {
+        try {
+          const success = await submitLeadData(formData);
+          if (!success) {
+            toast.error("Failed to submit lead data");
+            setStep(2);
+            setIsSearching(false);
+            return;
+          }
+          
+          // If successful, continue to step 3 after the loading animation
+          const timer = setTimeout(() => {
+            setIsSearching(false);
+            setStep(3);
+          }, 3000);
+          
+          return () => clearTimeout(timer);
+        } catch (error) {
+          console.error('Error submitting lead:', error);
+          toast.error("Failed to submit lead data");
+          setStep(2);
+          setIsSearching(false);
+        }
+      };
+
+      submitData();
     }
-  }, [isSearching]);
+  }, [isSearching, formData]);
 
   const handleStepOneSubmit = (stepOneData: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...stepOneData }));
@@ -61,40 +81,37 @@ export const MultiStepForm = () => {
   };
 
   const handleStepTwoSubmit = (stepTwoData: Partial<FormData>) => {
+    const requiredFields = [
+      "injuryType",
+      "accidentDate",
+      "atFault",
+      "hasAttorney",
+      "otherPartyInsured",
+      "soughtMedicalAttention",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !stepTwoData[field as keyof typeof stepTwoData]
+    );
+
+    if (missingFields.length > 0) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, ...stepTwoData }));
     setIsSearching(true);
   };
 
   const handleStepThreeSubmit = async (stepThreeData: Partial<FormData>) => {
     const finalFormData = { ...formData, ...stepThreeData };
-    await submitLeadData(finalFormData);
-    setIsSubmitted(true);
+    console.log("Form submitted:", finalFormData);
+    toast.success("Form submitted successfully!");
   };
 
   const handlePrevious = () => {
     setStep((prevStep) => Math.max(1, prevStep - 1));
   };
-
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-blue-600 mb-4">
-            Thank You for Your Submission
-          </h2>
-          <p className="text-gray-600 mb-6">
-            You will be contacted shortly by one of our representatives.
-          </p>
-          <a
-            href="tel:+18005555555"
-            className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Call Now
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   if (isSearching) {
     return (
