@@ -286,16 +286,22 @@ async function submitForm() {
 
   formData.tcpaConsent = tcpaConsent;
   
-  // Show loading state
-  document.getElementById('step3').style.display = 'none';
-  document.getElementById('loadingState').style.display = 'flex';
+  // Show loading state and hide the form content
+  const step3Content = document.getElementById('step3');
+  const loadingState = document.getElementById('loadingState');
+  const formButtons = step3Content.querySelector('.button-group');
+  const consentGroup = step3Content.querySelector('.form-group');
+  
+  formButtons.style.display = 'none';
+  consentGroup.style.display = 'none';
+  loadingState.style.display = 'flex';
   
   try {
     // Send post request with stored lead_id and bid_id
     const result = await postLeadData(formData, formData.leadId, formData.bidId);
     
     // Hide loading state
-    document.getElementById('loadingState').style.display = 'none';
+    loadingState.style.display = 'none';
     
     if (result.success) {
       // Show success screen
@@ -307,15 +313,22 @@ async function submitForm() {
   } catch (error) {
     console.error('Error submitting form:', error);
     // Hide loading state and show error screen
-    document.getElementById('loadingState').style.display = 'none';
+    loadingState.style.display = 'none';
     document.getElementById('errorScreen').style.display = 'flex';
   }
 }
 
 // Reset form function for the try again button
 function resetForm() {
-  // Hide error screen
-  document.getElementById('errorScreen').style.display = 'none';
+  // Hide error screen and show form content
+  const step3Content = document.getElementById('step3');
+  const formButtons = step3Content.querySelector('.button-group');
+  const consentGroup = step3Content.querySelector('.form-group');
+  const errorScreen = document.getElementById('errorScreen');
+  
+  errorScreen.style.display = 'none';
+  formButtons.style.display = 'flex';
+  consentGroup.style.display = 'block';
   
   // Reset form data
   formData = {
@@ -350,6 +363,8 @@ function resetForm() {
   
   // Show first step
   document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step3').style.display = 'none';
   updateProgressDots(1);
 }
 
