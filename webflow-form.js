@@ -43,9 +43,26 @@ function showError(message) {
 const API_KEY = "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a";
 const API_URL = "https://api.fisetbrian.workers.dev/";
 
+// Get TrustedForm certificate URL
+function getTrustedFormUrl() {
+  try {
+    // Check if TrustedForm script is loaded
+    if (window.hasOwnProperty('TF')) {
+      return window['TF'].getFormUrl();
+    }
+    return '';
+  } catch (error) {
+    console.error('Error getting TrustedForm URL:', error);
+    return '';
+  }
+}
+
 // Ping request to get lead_id and bid_id
 async function pingLeadPortal(formData) {
   try {
+    const trustedFormUrl = getTrustedFormUrl();
+    console.log('TrustedForm URL:', trustedFormUrl);
+
     const pingPayload = {
       Request: {
         Mode: "ping",
@@ -63,6 +80,7 @@ async function pingLeadPortal(formData) {
         Primary_Injury: formData.injuryType,
         Incident_Date: formData.accidentDate,
         Skip_Dupe_Check: "1",
+        Trusted_Form_URL: trustedFormUrl,
         Format: "JSON"
       }
     };
@@ -86,18 +104,18 @@ async function pingLeadPortal(formData) {
     const data = await response.json();
     console.log('Ping Response:', data);
     
-    if (!data.response || !data.response.lead_id || !data.response.bids?.bid?.[0]?.bid_id) {
+    if (!data.response || !data.response.lead_id) {
       throw new Error('Invalid response format from API');
     }
-    
-    // Extract company name from the first bid's seller_company_name
+
+    // Extract company name from the first bid's seller_company_name if available
     if (data.response?.bids?.bid?.[0]?.seller_company_name) {
       formData.companyName = data.response.bids.bid[0].seller_company_name;
     }
     
     return {
       leadId: data.response.lead_id,
-      bidId: data.response.bids.bid[0].bid_id,
+      bidId: data.response.bids?.bid?.[0]?.bid_id || '',
       success: true
     };
   } catch (error) {
@@ -113,6 +131,7 @@ async function pingLeadPortal(formData) {
 // Post request with lead data
 async function postLeadData(formData, leadId, bidId) {
   try {
+    const trustedFormUrl = getTrustedFormUrl();
     const tcpaLanguage = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
     
     const postPayload = {
@@ -124,7 +143,7 @@ async function postLeadData(formData, leadId, bidId) {
         IP_Address: "75.2.92.149",
         SRC: "AutoLegalUplift_",
         Landing_Page: window.location.href,
-        Trusted_Form_URL: "Trusted_Form_URL",
+        Trusted_Form_URL: trustedFormUrl,
         First_Name: formData.firstName,
         Last_Name: formData.lastName,
         State: formData.state,
