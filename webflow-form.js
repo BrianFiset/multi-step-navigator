@@ -19,7 +19,7 @@ let formData = {
   companyName: 'LegalUpLift' // Default company name
 };
 
-// Validate email format
+// Validation functions
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -81,15 +81,32 @@ async function pingLeadPortal(formData) {
 
     const data = await response.json();
     console.log('Ping Response:', data);
-    
-    // Extract company name from the first bid's seller_company_name
-    if (data.response?.bids?.bid?.[0]?.seller_company_name) {
-      formData.companyName = data.response.bids.bid[0].seller_company_name;
+
+    // Check if response has the expected structure
+    if (!data.response || !data.response.lead_id) {
+      console.error('Invalid response structure - missing lead_id:', data);
+      throw new Error('Invalid response structure - missing lead_id');
+    }
+
+    // Safely extract bid_id with fallback
+    let bidId = '';
+    if (data.response.bids && 
+        Array.isArray(data.response.bids.bid) && 
+        data.response.bids.bid.length > 0 && 
+        data.response.bids.bid[0].bid_id) {
+      bidId = data.response.bids.bid[0].bid_id;
+      
+      // Extract company name if available
+      if (data.response.bids.bid[0].seller_company_name) {
+        formData.companyName = data.response.bids.bid[0].seller_company_name;
+      }
+    } else {
+      console.warn('No bid information found in response:', data);
     }
     
     return {
       leadId: data.response.lead_id,
-      bidId: data.response.bids.bid[0].bid_id,
+      bidId: bidId,
       success: true
     };
   } catch (error) {
@@ -160,6 +177,7 @@ async function postLeadData(formData, leadId, bidId) {
   }
 }
 
+// Progress dots update
 function updateProgressDots(step) {
   document.getElementById('currentStep').textContent = step;
   for (let i = 1; i <= 3; i++) {
@@ -168,7 +186,7 @@ function updateProgressDots(step) {
   }
 }
 
-// Navigate to next step
+// Navigation functions
 function nextStep(currentStep) {
   if (currentStep === 1) {
     // Validate Step 1
@@ -305,7 +323,7 @@ async function submitForm() {
   alert('Form submitted successfully!');
 }
 
-// Initialize progress dots when page loads
+// Initialize progress dots
 document.addEventListener('DOMContentLoaded', function() {
   updateProgressDots(1);
 });
