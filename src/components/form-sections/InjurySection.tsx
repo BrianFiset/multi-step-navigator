@@ -10,17 +10,16 @@ import {
 interface InjurySectionProps {
   value: string;
   onChange: (value: string) => void;
-  required?: boolean;
 }
 
-export const InjurySection = ({ value, onChange, required = false }: InjurySectionProps) => {
+export const InjurySection = ({ value, onChange }: InjurySectionProps) => {
   return (
     <div className="space-y-2">
       <Label className="flex items-center">
         What injuries did you sustain?
-        {required && <span className="text-red-500 ml-1">*</span>}
+        <span className="text-red-500 ml-1">*</span>
       </Label>
-      <Select onValueChange={onChange} value={value || ""} required={required}>
+      <Select onValueChange={onChange} defaultValue={value} required>
         <SelectTrigger>
           <SelectValue placeholder="Select your injury type" />
         </SelectTrigger>
