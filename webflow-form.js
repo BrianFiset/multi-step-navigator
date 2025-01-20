@@ -79,8 +79,16 @@ async function pingLeadPortal(formData) {
       body: JSON.stringify(pingPayload)
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const data = await response.json();
     console.log('Ping Response:', data);
+    
+    if (!data.response || !data.response.lead_id || !data.response.bids?.bid?.[0]?.bid_id) {
+      throw new Error('Invalid response format from API');
+    }
     
     // Extract company name from the first bid's seller_company_name
     if (data.response?.bids?.bid?.[0]?.seller_company_name) {
@@ -149,6 +157,10 @@ async function postLeadData(formData, leadId, bidId) {
       },
       body: JSON.stringify(postPayload)
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const data = await response.json();
     console.log('Post Response:', data);
