@@ -1,4 +1,3 @@
-// Form data storage
 let formData = {
   firstName: '',
   lastName: '',
@@ -43,25 +42,33 @@ function showError(message) {
 const API_KEY = "4363f919c362693f3bfb2b978471ba01acd6dbf09853655f805022feb8ba199a";
 const API_URL = "https://api.fisetbrian.workers.dev/";
 
-// Get TrustedForm certificate URL
-function getTrustedFormUrl() {
+// Get TrustedForm URLs
+function getTrustedFormUrls() {
   try {
-    // Check if TrustedForm script is loaded
-    if (window.hasOwnProperty('TF')) {
-      return window['TF'].getFormUrl();
-    }
-    return '';
+    const certUrl = document.querySelector('[name="xxTrustedFormCertUrl"]')?.value || '';
+    const pingUrl = document.querySelector('[name="xxTrustedFormPingUrl"]')?.value || '';
+    
+    console.log('TrustedForm Cert URL:', certUrl);
+    console.log('TrustedForm Ping URL:', pingUrl);
+    
+    return {
+      certUrl,
+      pingUrl
+    };
   } catch (error) {
-    console.error('Error getting TrustedForm URL:', error);
-    return '';
+    console.error('Error getting TrustedForm URLs:', error);
+    return {
+      certUrl: '',
+      pingUrl: ''
+    };
   }
 }
 
 // Ping request to get lead_id and bid_id
 async function pingLeadPortal(formData) {
   try {
-    const trustedFormUrl = getTrustedFormUrl();
-    console.log('TrustedForm URL:', trustedFormUrl);
+    const { certUrl, pingUrl } = getTrustedFormUrls();
+    console.log('TrustedForm URLs:', { certUrl, pingUrl });
 
     const pingPayload = {
       Request: {
@@ -80,7 +87,8 @@ async function pingLeadPortal(formData) {
         Primary_Injury: formData.injuryType,
         Incident_Date: formData.accidentDate,
         Skip_Dupe_Check: "1",
-        Trusted_Form_URL: trustedFormUrl,
+        Trusted_Form_Cert_URL: certUrl,
+        Trusted_Form_Ping_URL: pingUrl,
         Format: "JSON"
       }
     };
@@ -131,7 +139,7 @@ async function pingLeadPortal(formData) {
 // Post request with lead data
 async function postLeadData(formData, leadId, bidId) {
   try {
-    const trustedFormUrl = getTrustedFormUrl();
+    const { certUrl, pingUrl } = getTrustedFormUrls();
     const tcpaLanguage = `I consent to be contacted by ${formData.companyName} regarding my legal matter. I understand that this may include calls, text messages, or emails, and that I can withdraw my consent at any time.`;
     
     const postPayload = {
@@ -143,7 +151,8 @@ async function postLeadData(formData, leadId, bidId) {
         IP_Address: "75.2.92.149",
         SRC: "AutoLegalUplift_",
         Landing_Page: window.location.href,
-        Trusted_Form_URL: trustedFormUrl,
+        Trusted_Form_Cert_URL: certUrl,
+        Trusted_Form_Ping_URL: pingUrl,
         First_Name: formData.firstName,
         Last_Name: formData.lastName,
         State: formData.state,

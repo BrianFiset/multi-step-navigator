@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <!-- ... other head elements ... -->
     <script type="text/javascript" src="https://api.trustedform.com/trustedform.js"></script>
 </head>
 <body>
-<!-- Add this HTML to your Webflow page -->
+<!-- Hidden TrustedForm fields -->
+<input type="hidden" name="xxTrustedFormCertUrl" value="" />
+<input type="hidden" name="xxTrustedFormPingUrl" value="" />
+
 <div class="form-container">
   <div class="progress-bar">
     <span class="step-indicator">Step <span id="currentStep">1</span>/3</span>
@@ -233,5 +235,6 @@
     </div>
   </div>
 </div>
+
 </body>
 </html>
